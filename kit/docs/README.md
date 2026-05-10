@@ -39,17 +39,30 @@ The `kit/` folder collects all kit material in one place so the consumer's repo 
 
 ## Quick start
 
-In an empty GitHub repo (created via GitHub Desktop with "Initialize" UNCHECKED):
+In an empty folder anywhere on your machine (no naming convention required):
 
-```bash
-cd your-empty-repo
-npx degit s-411/monorepo-kit --force
-./kit/bin/setup-secrets.sh
-```
+1. **One-time setup per machine** (skip if already done):
+   - Install pnpm: `npm install -g pnpm`
+   - Sign up for Convex (free): https://dashboard.convex.dev
+   - Authenticate Convex CLI: `npx convex login`
+   - Sign up for Clerk (free): https://dashboard.clerk.com
+   - (Optional) Authenticate `gh` CLI for auto-push: `gh auth login`
 
-Then open Claude Code and paste the king prompt from `kit/docs/START_NEW.md`.
+2. **Open Claude Code in your empty folder** and paste the body of
+   `kit/docs/BOOTSTRAP_PROMPT.md` (with the REQUIRED fields filled in
+   at the top — slug, purpose, stack, etc.).
 
-That's it. The king prompt orchestrates: `pnpm install` → `create-next-app` → `create-expo-app` → mobile customisations → Clerk peer set → Convex bootstrap → providers wired → `boot-gate.sh` confirms all three services boot on real targets.
+3. **Answer ~3 questions in chat:**
+   - Your Convex team slug (one-liner)
+   - Three Clerk credentials in one batch (after a 3-min dashboard visit)
+
+That's it. The agent pulls the kit, creates the Convex project, walks you
+through Clerk setup, scaffolds Next.js + Expo, wires Clerk + Convex on
+both, and boot-gates all three services on real targets.
+
+For manual / debug control, `kit/docs/START_NEW.md` is the older "you do
+all the pre-flight by hand" prompt. Use it if you want to drive each step
+yourself.
 
 ---
 
@@ -86,8 +99,9 @@ Highlights:
 
 ## See also
 
-- `KIT_RETROSPECTIVE.md` — the 20 real failures that shaped this kit's defensive design
-- `START_NEW.md` — the king prompt for fresh apps
+- `BOOTSTRAP_PROMPT.md` — the agent-driven king prompt (new default flow)
+- `START_NEW.md` — manual-mode king prompt (fallback / debugging)
+- `KIT_RETROSPECTIVE.md` — the 20+ real failures that shaped this kit's defensive design
 - `BOOTSTRAP.md` — verification checklist (Phase 2)
 - `PROCESS_GUIDE.md` — full 16-stage pipeline (Phase 3)
 - `CHEATSHEET.md` — the 20 gotchas distilled for at-a-glance (Phase 3)

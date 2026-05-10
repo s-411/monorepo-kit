@@ -1,10 +1,22 @@
-# START_NEW.md
+# START_NEW.md — manual / fallback mode
 
-> **What this is:** the single prompt to paste into Claude Code that takes a kit-prepared repo from `setup-secrets.sh` complete to all three services confirmed running on real targets.
+> **For most apps, use `BOOTSTRAP_PROMPT.md` instead** — that's the
+> agent-driven flow where Claude Code does everything (pulls the kit,
+> creates Convex project, collects creds in chat, scaffolds). You answer
+> ~3 questions in chat and watch.
 >
-> **When to use:** every brand-new monorepo built on this kit.
+> **Use this file (`START_NEW.md`) when:**
+> - You want manual control over each step (debugging, custom flow)
+> - You don't have Claude Code available
+> - You're rebuilding after a failed `BOOTSTRAP_PROMPT.md` run and need to
+>   intervene phase-by-phase
 >
-> **When NOT to use:** existing monorepo that already has apps scaffolded — for those, see `BOOTSTRAP.md` (Phase 2).
+> **What this is:** the older single prompt to paste into Claude Code that
+> takes a kit-prepared repo from `setup-secrets.sh` complete to all three
+> services confirmed running on real targets.
+>
+> **When NOT to use:** existing monorepo that already has apps scaffolded —
+> for those, see `BOOTSTRAP.md` (Phase 2).
 
 ---
 

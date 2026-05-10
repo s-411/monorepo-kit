@@ -257,6 +257,60 @@ Turbo require there: the four root configs, `.gitignore`, `.npmrc`,
 `kit/docs/` for kit orientation; the kit's own README lives at
 `kit/docs/README.md`.
 
+### F6. Pre-flight was human-driven, not agent-driven
+
+Original kit assumed the human ran every pre-flight step in their terminal:
+`npx degit`, dashboard setup (Convex, Clerk), `./kit/bin/setup-secrets.sh`,
+verifying MCPs. Then the human pasted a king prompt into Claude Code which
+picked up where pre-flight ended.
+
+This had four chronic failure modes:
+
+1. **`cd` cascade failures.** Human runs `cd /path/to/repo` in zsh. The
+   directory doesn't exist (typo, repo not yet cloned, wrong path
+   convention). zsh prints the error and continues running every subsequent
+   command in the wrong directory. `npx degit` dumps the kit into HOME.
+   `setup-secrets.sh` writes `.env.kit` to HOME. The human doesn't notice
+   until much later.
+
+2. **Interactive script accepts garbage input.** `setup-secrets.sh` asks
+   "Convex team slug" and the human pastes the full `dashboard.convex.dev/t/...`
+   URL. The bash regex validation only checks the WORKING_SLUG field, not
+   CONVEX_TEAM. The script accepts the URL, writes it to `.env.kit`, the
+   build fails three phases later with a confusing Convex CLI error.
+
+3. **# comments break in pasted command blocks.** zsh by default doesn't
+   treat `#` as a comment in interactive mode (`interactive_comments` is
+   off). Multi-line shell blocks copied from documentation include comments
+   that zsh tries to execute as commands. `zsh: command not found: #` for
+   every comment line.
+
+4. **Dashboard work breaks momentum.** Convex project creation, Clerk app
+   creation, JWT template setup — three separate browser tabs, each
+   requiring focused 1-3 minute work. Done up-front before pasting the
+   prompt, with each one a context-switch from the bootstrap flow.
+
+**Kit fix:** invert the model. Claude Code drives the bootstrap end-to-end
+via `kit/docs/BOOTSTRAP_PROMPT.md`. The human's only terminal action is
+opening Claude Code in an empty folder and pasting the prompt. After that:
+
+- Claude Code runs `npx degit` itself (no `cd` failure to cascade through —
+  Claude Code's bash tool surfaces every error immediately).
+- Convex project creation moves to the CLI (`convex dev --configure new`),
+  eliminating one dashboard visit.
+- Clerk credentials are collected via Claude Code chat (not a bash prompt)
+  with format-aware regex matching (`pk_test_…`, `sk_test_…`,
+  `https://*.clerk.accounts.dev`) — Claude Code can ask again when
+  parsing fails, where bash silently accepts garbage.
+- `.env.kit` is written by Claude Code's file-write tool, not the
+  interactive bash script. `setup-secrets.sh` stays in the kit as a fallback
+  (e.g., when Claude Code isn't available) but is no longer the default.
+- GitHub repo creation moves into the prompt's optional Phase 14, gated on
+  `gh auth status`.
+
+`START_NEW.md` is reframed as the manual-mode fallback. `BOOTSTRAP_PROMPT.md`
+is the new default for ~95% of bootstraps.
+
 ---
 
 ## Proposed kit structure (expanded from this retrospective)
@@ -345,3 +399,4 @@ monorepo-kit/
 | F3 | narrow `.gitignore` | `kit/templates/.gitignore` |
 | F4 | SVG var fills | `kit/bin/process-figma-svgs.sh` |
 | F5 | kit clutters repo root + scripts hardcode `SCRIPT_DIR/..` | move all kit material under `kit/`, scripts use `SCRIPT_DIR/../..`, ship project-placeholder root README |
+| F6 | human-driven pre-flight is fragile (cd cascades, interactive bash accepts garbage, # comments break, dashboard breaks momentum) | `kit/docs/BOOTSTRAP_PROMPT.md` for agent-driven bootstrap; Convex CLI handles project creation; Claude Code collects creds in chat with format-aware validation; `START_NEW.md` becomes manual-mode fallback |

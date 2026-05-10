@@ -19,36 +19,57 @@ You DON'T paste `START_NEW.md` here. You paste the **king prompt** here. Claude.
 
 ## The systematic build flow
 
-For each new monorepo app, the flow is:
+For each new monorepo app, the flow is now **agent-driven by default** —
+Claude Code does everything, you answer ~3 questions in chat. The Claude.ai
+project (this one) becomes a strategic backstop you reach for when the
+default flow doesn't fit.
 
-### 1. Pre-build setup (your terminal, ~10 min)
+### Path 1 — Default: agent-driven bootstrap (~95% of apps)
 
-```bash
-# Empty GitHub repo, Initialize OFF, cloned locally
-cd your-empty-repo
-npx degit s-411/monorepo-kit --force
-./kit/bin/setup-secrets.sh   # collects all creds → .env.kit
-```
+1. **Confirm one-time pre-conditions** (skip if already done on this machine):
+   - pnpm + node 20+ installed
+   - Convex account exists + CLI authed (`npx convex login`)
+   - Clerk account exists
+   - (Optional) `gh` CLI authed for auto-push
 
-Plus: confirm Convex project + Clerk app exist, JWT template named `convex` is set up, Nanobanana MCP is connected. Full pre-flight checklist is in `KING_PROMPTS.md` Scenario A.
+2. **Create an empty folder** anywhere on your machine. Naming convention is up to you.
 
-### 2. Strategic kickoff (this Claude.ai project, fresh sub-chat)
+3. **(Optional) Place a `handoff/` folder at the root** if the app has product spec / reference material. Skip if it doesn't.
 
-- Open a **new chat** in this project
-- Paste `KING_PROMPTS.md` Scenario A with the fields filled in
-- Claude.ai confirms plan, asks any clarifying questions, and prepares the `START_NEW.md` king prompt customised for your app
+4. **Open Claude Code in the empty folder**.
 
-### 3. Execution (Claude Code in your repo)
+5. **Paste the body of `kit/docs/BOOTSTRAP_PROMPT.md`** with the REQUIRED fields filled in at the top (slug, purpose, stack overlays, handoff y/n, GitHub-create y/n).
 
-- Open Claude Code in the cloned repo
-- Paste the prompt Claude.ai prepared for you
-- Claude Code runs Phases 1–10 from `START_NEW.md`
-- Watch each phase complete; if anything fails, Claude Code stops and surfaces the error
-- Bring the error back to the Claude.ai chat for debugging
+6. **Answer ~3 questions in chat** as Claude Code drives:
+   - Convex team slug (one line)
+   - Three Clerk credentials in one batch (after a 3-min Clerk dashboard visit)
 
-### 4. Subsequent stages (back to Claude.ai)
+7. **Confirm the boot gate** when it asks (web rendering at localhost:3000, mobile rendering on a real device via Expo Go).
 
-- Stage 2+ work happens chat-by-chat in this Claude.ai project
+That's the whole interaction. The agent handles every other step.
+
+### Path 2 — Strategic kickoff via this Claude.ai project (when needed)
+
+Use this when:
+- You're using a non-baseline stack (Stripe, Resend, RevenueCat, etc.) and want to plan Phase-N overlays before bootstrapping
+- A previous bootstrap failed and you need debugging help before retrying
+- You want strategic input on naming, repo placement, branch strategy, etc.
+- You want Claude.ai to customise the BOOTSTRAP_PROMPT REQUIRED block for you instead of filling it in by hand
+
+Steps:
+
+1. **Open a new chat** in this Claude.ai project.
+2. **Paste `KING_PROMPTS.md` Scenario A → Path A2** with the fields filled in.
+3. **Claude.ai prepares a customised BOOTSTRAP_PROMPT** for you to paste into Claude Code.
+4. **Continue from step 4 of Path 1** above.
+
+### Path 3 — Manual mode (debugging / fallback)
+
+When Path 1's agent-driven flow has issues you can't easily debug, fall back to `kit/docs/START_NEW.md` — the older, more verbose prompt where YOU drive the pre-flight (degit, setup-secrets.sh, dashboards) and Claude Code only handles the scaffolding phases. Slower but more transparent.
+
+### Subsequent stages (Stage 2+, back to this Claude.ai project)
+
+- Stage 2+ work happens chat-by-chat in this Claude.ai project (per-app, not in the kit)
 - For each stage, Claude.ai prepares the prompt for Claude Code based on the app's specifics, the kit's process docs, and any Figma / design / API references you've attached to the chat
 - Iterate until the app ships
 
@@ -59,11 +80,12 @@ Plus: confirm Convex project + Clerk app exist, JWT template named `convex` is s
 | File | Purpose |
 |---|---|
 | `README.md` | 5-min orientation to the kit |
-| `KIT_RETROSPECTIVE.md` | Design spec — 20 real failures the kit defends against. Read this when something weird happens; the answer is probably here |
-| `START_NEW.md` | The king prompt for **Claude Code**. Used in Stage 1 only |
-| `KING_PROMPTS.md` | Paste-ready Claude.ai kickoff prompts. **This is the doc you reach for at the start of every new sub-chat** |
+| `BOOTSTRAP_PROMPT.md` | The agent-driven king prompt — **default flow for new apps**. User pastes this in Claude Code and answers ~3 questions; Claude does the rest |
+| `START_NEW.md` | Manual-mode king prompt — fallback when you want to drive each step yourself, or for debugging |
+| `KING_PROMPTS.md` | Paste-ready Claude.ai kickoff prompts. Reach for this when you want strategic input before going to Claude Code |
+| `KIT_RETROSPECTIVE.md` | Design spec — 20+ real failures the kit defends against. Read this when something weird happens; the answer is probably here |
 | `HOW_TO_USE_THIS_PROJECT.md` | This file |
-| `bin/setup-secrets.sh` | Reference — Claude can answer "what does setup-secrets collect?" (lives at `kit/bin/setup-secrets.sh` in the consumer's repo) |
+| `bin/setup-secrets.sh` | Reference — Claude can answer "what does setup-secrets collect?" (lives at `kit/bin/setup-secrets.sh` in the consumer's repo). FALLBACK ONLY — agent-driven flow writes `.env.kit` directly without this script |
 | `bin/boot-gate.sh` | Reference — Claude can answer "what does boot-gate verify?" (lives at `kit/bin/boot-gate.sh` in the consumer's repo) |
 | `templates/apps/mobile/metro.config.js` | Reference — Claude can debug Metro issues (lives at `kit/templates/apps/mobile/metro.config.js` in the consumer's repo) |
 | `packages/backend/convex/auth.config.ts.template` | Reference — Claude understands the Clerk JWT issuer pattern |
@@ -138,33 +160,31 @@ pkill -f "expo start"
 
 ## Worked example: starting a new app called "movie-club"
 
-1. **Terminal:**
+1. **Empty folder:**
    ```bash
-   gh repo create s-411/movie-club --public --description "..."
-   gh repo clone s-411/movie-club
-   cd movie-club
-   npx degit s-411/monorepo-kit --force
-   ./kit/bin/setup-secrets.sh
-   # (interactive — provide slug, Convex team/project, Clerk keys, JWT issuer)
+   mkdir -p ~/Documents/GitHub/movie-club
+   cd ~/Documents/GitHub/movie-club
    ```
+   (No GitHub repo yet — the agent can create it via `gh` in Phase 14, or you can do it manually later.)
 
-2. **This Claude.ai project:** New chat, paste:
+2. **Open Claude Code in that folder.** Paste the body of `kit/docs/BOOTSTRAP_PROMPT.md` (you'd have a copy locally from a previous app, or download from `s-411/monorepo-kit` GitHub) with the REQUIRED fields filled in:
+
    ```
-   New monorepo app sub-chat. Before doing anything else, run the kickoff
-   interview using KING_PROMPTS.md and START_NEW.md as reference.
-
-   - App name / working slug: movie-club
+   - App slug: movie-club
    - Purpose: Letterboxd for friend-group film watch parties
-   - Convex team slug: steven-harris
-   - Convex project name: movie-club
-   - Stack: Convex + Clerk
-   - Current stage: 0 → 1
-   - Repo: brand new, kit pulled, .env.kit populated
-   - Notes: solo developer, want shadcn for charts
+   - Stack overlays beyond baseline: none
+   - Handoff folder at repo root: no
+   - Create GitHub repo and push: yes-public
    ```
 
-3. **Claude.ai responds:** confirms plan, prepares the customised START_NEW.md prompt block
+3. **Claude Code drives:** pulls the kit, asks "what's your Convex team slug?" → you answer `steven-harris` → it creates the Convex project automatically. Then "do 3-min Clerk setup, paste the three values" → you do it, paste them in chat.
 
-4. **Claude Code in `~/Documents/GitHub/movie-club`:** paste that block, Phases 1–10 execute
+4. **Scaffolding runs.** Next.js, Expo, Clerk peer set, providers wiring — all automatic.
 
-5. **Boot gate confirms** all three services running on real targets — Stage 1 done. Back to Claude.ai for Stage 2 planning.
+5. **Boot gate confirms** all three services running on real targets (you confirm web rendering at localhost:3000, mobile rendering on a real device).
+
+6. **`gh repo create movie-club --public` runs**, initial commit lands, `git push` lands.
+
+Total interaction: ~3 questions answered in chat, ~3 minutes in the Clerk dashboard, ~5 minutes confirming boot gate. No terminal commands typed by hand.
+
+Back to this Claude.ai project for Stage 2 planning when you're ready to start building features.

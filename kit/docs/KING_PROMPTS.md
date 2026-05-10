@@ -2,43 +2,61 @@
 
 Pick the scenario that matches your repo state, fill in the fields, paste as your first message in a fresh sub-chat in this Claude.ai project.
 
-If every field is filled, the kickoff is satisfied and Claude proceeds straight to the next action — preparing the START_NEW.md prompt for Claude Code (Scenario A) or auditing repo state (Scenario B/C).
+> **Note on the two paths in Scenario A:** the kit now supports a fully
+> agent-driven bootstrap (BOOTSTRAP_PROMPT.md) where Claude Code drives
+> everything. You don't need this Claude.ai project for that path — you
+> can go directly to Claude Code. Use this Claude.ai sub-chat path when
+> you want strategic input on the bootstrap (custom stack, debugging,
+> cross-app planning, etc.) before pasting into Claude Code.
 
 ---
 
 ## Scenario A — Brand New Monorepo App
 
-**Pre-flight in your terminal — do these BEFORE pasting:**
+### Path A1 — Direct to Claude Code (recommended default)
 
-1. Empty GitHub repo created (Initialize OFF) and cloned locally
-2. `cd` into the cloned repo
-3. `npx degit s-411/monorepo-kit --force` — pulls the kit
-4. Convex project exists in dashboard ([dashboard.convex.dev](https://dashboard.convex.dev))
-5. Clerk app exists with the auth providers you want enabled, AND a JWT template named `convex` configured ([dashboard.clerk.com](https://dashboard.clerk.com))
-6. `./kit/bin/setup-secrets.sh` — interactive, ~3 min, writes `.env.kit` at repo root
-7. Nanobanana MCP verified connected in Claude Code (`claude mcp list | grep nanobanana`)
+Skip Claude.ai. The agent does everything.
 
-**Then paste this in a fresh Claude.ai sub-chat:**
+**Pre-conditions (one-time per machine):**
+1. pnpm installed (`npm install -g pnpm`)
+2. Node 20+ installed
+3. Convex account exists + CLI authed (`npx convex login`)
+4. Clerk account exists
+5. (Optional) `gh` CLI authed for auto-push
+
+**To bootstrap a new app:**
+1. Create an empty folder anywhere on your machine
+2. Open Claude Code in it
+3. Paste the body of `kit/docs/BOOTSTRAP_PROMPT.md` with REQUIRED fields
+   filled in at the top (slug, purpose, stack overlays, handoff y/n,
+   GitHub-create y/n)
+4. Answer ~3 questions in chat (Convex team slug; then three Clerk creds
+   in one batch after a 3-min dashboard visit)
+
+That's the whole interaction. The agent pulls the kit, creates the Convex
+project, walks you through Clerk setup, scaffolds, and boot-gates.
+
+### Path A2 — Strategic kickoff in Claude.ai (when needed)
+
+Use when you want this project's brain involved before bootstrap (e.g.,
+non-baseline stack, you want strategic input on the choices, debugging
+a previous failed bootstrap, etc.).
+
+**Paste this in a fresh Claude.ai sub-chat:**
 
 ```
-New monorepo app sub-chat. Before doing anything else, run the kickoff
-interview using KING_PROMPTS.md and START_NEW.md as reference.
+New monorepo app sub-chat. I want to bootstrap with the agent-driven flow
+(BOOTSTRAP_PROMPT.md), but discuss strategy here first.
 
 - App name / working slug:
 - Purpose:
-- Convex team slug:
-- Convex project name:
-- Stack: Convex + Clerk (kit baseline)
-- Current stage: 0 → 1
-- Repo: brand new, kit pulled via degit, .env.kit populated
-- Notes:
+- Stack overlays beyond baseline (Stripe / Resend / RevenueCat / Sentry / PostHog):
+- Handoff folder content / product spec attached:
+- Notes / open questions:
 ```
 
-**Action implied:**
-- Confirm pre-flight is complete; ask if any of the 7 items is unclear
-- Customise the START_NEW.md king prompt for this specific app (substitute slug/purpose/notes into the prompt's REQUIRED block)
-- Hand it back to me as a clean code block — I paste that into **Claude Code** in the repo, which executes Phases 1–10
-- I report status back here for debugging or next-stage planning
+**Action implied:** confirm strategy, customise the BOOTSTRAP_PROMPT REQUIRED
+block, hand back as a clean code block. You paste that into Claude Code.
 
 ---
 

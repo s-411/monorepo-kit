@@ -16,7 +16,7 @@ This monorepo was bootstrapped from [s-411/monorepo-kit](https://github.com/s-41
 │   ├── theme/            Shared design tokens
 │   └── shared/           Shared business logic, types
 ├── kit/                  Kit material (docs, scripts, templates)
-│   ├── docs/             README, KING_PROMPTS, START_NEW, KIT_RETROSPECTIVE, etc.
+│   ├── docs/             BOOTSTRAP_PROMPT, README, KING_PROMPTS, START_NEW, KIT_RETROSPECTIVE, etc.
 │   ├── bin/              setup-secrets, boot-gate, etc.
 │   └── templates/        Drop-in config files (metro, etc.)
 ├── package.json          (root)
@@ -28,9 +28,10 @@ This monorepo was bootstrapped from [s-411/monorepo-kit](https://github.com/s-41
 
 ## Where to start
 
-- **Bootstrapping a new app from this kit:** [`kit/docs/README.md`](./kit/docs/README.md), then [`kit/docs/HOW_TO_USE_THIS_PROJECT.md`](./kit/docs/HOW_TO_USE_THIS_PROJECT.md).
-- **The king prompt for Claude Code:** [`kit/docs/START_NEW.md`](./kit/docs/START_NEW.md).
-- **Why the kit looks the way it does:** [`kit/docs/KIT_RETROSPECTIVE.md`](./kit/docs/KIT_RETROSPECTIVE.md) — 20 real failures the kit defends against.
+- **Bootstrapping a new app from this kit (default flow):** [`kit/docs/BOOTSTRAP_PROMPT.md`](./kit/docs/BOOTSTRAP_PROMPT.md) — agent-driven; you paste it into Claude Code, answer ~3 questions, watch.
+- **Manual-mode king prompt (fallback):** [`kit/docs/START_NEW.md`](./kit/docs/START_NEW.md).
+- **Kit orientation + how to use this project:** [`kit/docs/README.md`](./kit/docs/README.md), then [`kit/docs/HOW_TO_USE_THIS_PROJECT.md`](./kit/docs/HOW_TO_USE_THIS_PROJECT.md).
+- **Why the kit looks the way it does:** [`kit/docs/KIT_RETROSPECTIVE.md`](./kit/docs/KIT_RETROSPECTIVE.md) — 20+ real failures the kit defends against.
 
 ## Browsing this on GitHub?
 
