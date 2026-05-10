@@ -26,13 +26,13 @@ These pauses cost the most momentum if Claude Code hits them mid-flight. Knock t
 
 5. **Clerk JWT template named "convex" configured.** In Clerk dashboard → JWT Templates → New template → choose "Convex" from the preset list. Save it. Then copy the **Issuer URL** field — you'll need it in the next step.
 
-6. **Run `./bin/setup-secrets.sh`** in the repo root. Interactive, ~3 minutes, collects every credential the king prompt will need and writes them to `.env.kit`.
+6. **Run `./kit/bin/setup-secrets.sh`** in the repo root. Interactive, ~3 minutes, collects every credential the king prompt will need and writes them to `.env.kit`.
 
 7. **Verify Nanobanana MCP is connected** (used at later stages for in-app imagery and screenshots):
    ```bash
    claude mcp list | grep nanobanana
    ```
-   If not connected, see installation in `bin/setup-secrets.sh`'s output or the existing kit's `START_NEW.md` step 3a.
+   If not connected, see installation in `kit/bin/setup-secrets.sh`'s output or the existing kit's `START_NEW.md` step 3a.
 
 When all seven are done, paste the king prompt below.
 
@@ -47,7 +47,7 @@ START NEW MONOREPO — Next.js + Expo + Convex + Clerk
 
 Pre-flight by the user is complete:
 - Repo is empty except for the kit (npx degit s-411/monorepo-kit --force has run)
-- .env.kit exists at repo root, populated by ./bin/setup-secrets.sh
+- .env.kit exists at repo root, populated by ./kit/bin/setup-secrets.sh
 - Convex project exists in dashboard
 - Clerk app exists with JWT template "convex" configured
 - Nanobanana MCP is connected
@@ -80,8 +80,8 @@ PHASE 1 — Verify state, source creds
 ────────────────────────────────────────────────────────────────────────
 - Print pwd. Confirm folder name reasonably matches a slug.
 - Run `ls`. Confirm these all exist: package.json, pnpm-workspace.yaml,
-  turbo.json, .npmrc, .gitignore, README.md, START_NEW.md,
-  KIT_RETROSPECTIVE.md, .env.kit, bin/, packages/, templates/.
+  turbo.json, .npmrc, .gitignore, README.md, .env.kit, kit/, packages/.
+  Inside kit/, confirm kit/docs/, kit/bin/, kit/templates/ exist.
 - Source .env.kit and confirm WORKING_SLUG, CONVEX_TEAM, CONVEX_PROJECT,
   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY, CLERK_SECRET_KEY,
   EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY, CLERK_JWT_ISSUER_URL are all set
@@ -118,7 +118,7 @@ PHASE 4 — Scaffold apps/mobile (Expo + expo-router)
 - Verify: apps/mobile/app.json, apps/mobile/app/_layout.tsx,
   apps/mobile/package.json exist.
 - Apply the kit's monorepo-aware Metro config:
-    cp templates/apps/mobile/metro.config.js apps/mobile/metro.config.js
+    cp kit/templates/apps/mobile/metro.config.js apps/mobile/metro.config.js
 - Add the dev script to apps/mobile/package.json (this is the fix for B4 —
   without it `turbo run dev --filter=mobile` silently no-ops):
     cd apps/mobile && npm pkg set scripts.dev="expo start" && cd ../..
@@ -215,7 +215,7 @@ later stage.
 PHASE 9 — Boot gate (E1: real device-load, not just bundle compile)
 ────────────────────────────────────────────────────────────────────────
 Run:
-    ./bin/boot-gate.sh
+    ./kit/bin/boot-gate.sh
 
 This script:
 - Starts `convex dev` (packages/backend), `next dev` (apps/web), and

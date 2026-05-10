@@ -12,8 +12,8 @@
     "type-check": "turbo run type-check",
     "convex:dev": "pnpm --filter @kit/backend dev",
     "convex:deploy": "pnpm --filter @kit/backend deploy",
-    "kill:metros": "./bin/kill-metros.sh",
-    "boot-gate": "./bin/boot-gate.sh"
+    "kill:metros": "./kit/bin/kill-metros.sh",
+    "boot-gate": "./kit/bin/boot-gate.sh"
   },
   "devDependencies": {
     "turbo": "^2.0.0",

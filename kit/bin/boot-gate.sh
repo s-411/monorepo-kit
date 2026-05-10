@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# bin/boot-gate.sh
+# kit/bin/boot-gate.sh
 #
 # REAL boot gate — starts Convex, web, and mobile dev servers in parallel,
 # then asks the operator to confirm each one ACTUALLY rendered on its
@@ -14,8 +14,9 @@
 set -euo pipefail
 
 # ---------- setup ----------
+# Script lives at <repo>/kit/bin/, so REPO_ROOT is two levels up.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 LOG_DIR="$REPO_ROOT/.boot-gate-logs"
 
 # Configurable ports (override via env)

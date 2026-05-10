@@ -67,7 +67,7 @@ which doesn't exist → cryptic error. The fix is just "run from `apps/mobile/`"
 but the error gives no hint.
 
 **Kit fix (multi-layer defence):**
-- Add a root `Makefile` or `bin/dev-mobile.sh` that always `cd apps/mobile`
+- Add a root `Makefile` or `kit/bin/dev-mobile.sh` that always `cd apps/mobile`
 - Document: "Never `expo start` from the repo root in a monorepo"
 - Add `node-linker=hoisted` to `.npmrc` (Expo's official monorepo recommendation)
   so the legacy entry path works defensively
@@ -89,7 +89,7 @@ Adding the SVG transformer to `metro.config.js` served stale config until
 `expo start --clear`. 10 minutes of debugging.
 
 **Kit fix:** every kit instruction that modifies `metro.config.js` ends with
-"restart Metro with `--clear`". Add a `bin/dev-mobile.sh` flag for it.
+"restart Metro with `--clear`". Add a `kit/bin/dev-mobile.sh` flag for it.
 
 ### B6. Port collisions — Expo's interactive prompt fails in background processes
 
@@ -104,7 +104,7 @@ once and pinned per repo). Document the multi-project port-conflict pattern.
 Three Metros running across 8081/8082/8083 at one point; Expo Go cached
 connections to dead ones. Scanning a fresh QR doesn't always evict the cache.
 
-**Kit fix:** include `bin/kill-metros.sh` (`pkill -f "expo start"`). Document
+**Kit fix:** include `kit/bin/kill-metros.sh` (`pkill -f "expo start"`). Document
 that force-quitting Expo Go on the device is sometimes required.
 
 ---
@@ -184,7 +184,7 @@ execution time on a device.
 
 **Kit fix:** the boot gate must require an actual device load (Expo Go or
 simulator) and a "Hello World" rendered visibly, not just a successful bundle
-compile. `bin/boot-gate.sh` waits for explicit user confirmation that the app
+compile. `kit/bin/boot-gate.sh` waits for explicit user confirmation that the app
 appeared on a device before exiting 0.
 
 ---
@@ -208,7 +208,7 @@ single-app convention to its monorepo equivalent for cross-reference.
 Stage 1 paused twice for credentials (Convex team, Clerk keys). Each pause cost
 momentum.
 
-**Kit fix:** ship `bin/setup-secrets.sh` that prompts for ALL required
+**Kit fix:** ship `kit/bin/setup-secrets.sh` that prompts for ALL required
 credentials at the start (Convex team slug, Clerk publishable + secret,
 optionally Stripe/Resend/RevenueCat/Sentry/PostHog keys for later stages) and
 writes them to the right `.env*` files in one pass.
@@ -232,8 +232,30 @@ file). Could have leaked secrets if `git add -A` was run blindly.
 Every Figma SVG export had `var(--fill-X, #color)` CSS-var fills that
 `react-native-svg` doesn't parse. Required `sed` per asset.
 
-**Kit fix:** include `bin/process-figma-svgs.sh` — a one-shot script that scans
+**Kit fix:** include `kit/bin/process-figma-svgs.sh` — a one-shot script that scans
 `apps/mobile/assets/` for SVGs and inlines all `var(--fill-X, #...)` references.
+
+### F5. Kit material cluttered the consumer's repo root
+
+Original kit shipped 5 docs (`README.md`, `KING_PROMPTS.md`, `START_NEW.md`,
+`KIT_RETROSPECTIVE.md`, `HOW_TO_USE_THIS_PROJECT.md`) plus `bin/` and
+`templates/` folders directly at repo root. After `npx degit`, the consumer's
+working tree was visually dominated by kit reference material rather than
+their own code, with seven kit-related items at root competing with `apps/`,
+`packages/`, and any product-specific folders the consumer added.
+
+The two `bin/` shell scripts also resolved `REPO_ROOT="$SCRIPT_DIR/.."` —
+hardcoding the assumption that the script lives one level deep from root.
+Moving them anywhere broke pathing; the assumption was the constraint.
+
+**Kit fix:** consolidate kit material under a single `kit/` folder
+(`kit/docs/`, `kit/bin/`, `kit/templates/`). Root keeps only what pnpm and
+Turbo require there: the four root configs, `.gitignore`, `.npmrc`,
+`packages/`, and the eventual `apps/`. Bin scripts use
+`REPO_ROOT="$SCRIPT_DIR/../.."` (two levels up) so they work from
+`kit/bin/`. Root README is replaced with a project placeholder pointing at
+`kit/docs/` for kit orientation; the kit's own README lives at
+`kit/docs/README.md`.
 
 ---
 
@@ -241,53 +263,60 @@ Every Figma SVG export had `var(--fill-X, #color)` CSS-var fills that
 
 ```
 monorepo-kit/
-  README.md                        — 5-minute setup story
-  KIT_RETROSPECTIVE.md             — this file
-  BOOTSTRAP.md                     — verification checklist
-  STACK_PROFILES.md                — Convex+Clerk | Convex+Clerk+Stripe
-  PROCESS_GUIDE.md                 — 16 stages, monorepo-aware paths
-  CHEATSHEET.md                    — the 20 gotchas distilled for at-a-glance
-  AGENTS.md                        — Next 16 proxy.ts, monorepo gotchas, etc.
-  PROMPTS.md                       — per-stage prompts (only stages that DIFFER
-                                     from existing kits)
-  CREDENTIALS.md                   — one-time external setup
-  REF_DOCS_INDEX.md                — pointers to ~/Documents/GitHub/ref-docs
+  README.md                        — minimal project README placeholder
+                                     (consumer overwrites with their own)
+  package.json                     — root configs, must stay at root for
+  pnpm-workspace.yaml                pnpm/Turbo to find them
+  turbo.json
+  .npmrc                           — node-linker=hoisted (defensive for Expo)
+  .gitignore                       — broad .env* + .vscode/
 
-  templates/
-    package.json                   — root, with dev:web/dev:mobile/convex:dev
-    pnpm-workspace.yaml            — apps/* + packages/*
-    turbo.json                     — both `dev` AND `start` aliased
-    .gitignore                     — broad .env* + .vscode/
-    .npmrc                         — node-linker=hoisted (defensive for Expo)
-
-    apps/mobile/
-      package.json                 — INCLUDES "dev": "expo start" by default
-      metro.config.js              — monorepo-ready (workspaceRoot watch + symlinks)
-      svg.d.ts                     — for react-native-svg-transformer
-      app.json                     — usesNonExemptEncryption: false baked in
-
-    apps/web/
-      …                            — Next 16 ready, with proxy.ts (NOT middleware.ts)
-
-    packages/theme/                — placeholder tokens
-    packages/backend/
+  packages/                        — workspace packages, must stay at root
+    theme/                         — placeholder tokens
+    backend/
       package.json                 — exposes convex/_generated
       convex/auth.config.ts.template — Clerk JWT issuer placeholder
-    packages/shared/
+    shared/
 
-  bin/
-    setup-secrets.sh               — interactive: collects all creds, writes .env files
-    install-deps.sh                — pnpm install + expo install --fix sequence
-    process-figma-svgs.sh          — inlines var(--fill-X) references
-    kill-metros.sh                 — pkill -f "expo start"
-    boot-gate.sh                   — runs convex:dev + dev:mobile + dev:web AND
+  kit/                             — all kit material consolidated under here
+                                     so the consumer's repo root stays clean
+    docs/
+      README.md                    — 5-minute setup story
+      KIT_RETROSPECTIVE.md         — this file
+      BOOTSTRAP.md                 — verification checklist
+      STACK_PROFILES.md            — Convex+Clerk | Convex+Clerk+Stripe
+      PROCESS_GUIDE.md             — 16 stages, monorepo-aware paths
+      CHEATSHEET.md                — the 20 gotchas distilled for at-a-glance
+      AGENTS.md                    — Next 16 proxy.ts, monorepo gotchas, etc.
+      PROMPTS.md                   — per-stage prompts (only stages that DIFFER
+                                     from existing kits)
+      CREDENTIALS.md               — one-time external setup
+      REF_DOCS_INDEX.md            — pointers to ~/Documents/GitHub/ref-docs
+
+    templates/
+      apps/mobile/
+        package.json               — INCLUDES "dev": "expo start" by default
+        metro.config.js            — monorepo-ready (workspaceRoot watch + symlinks)
+        svg.d.ts                   — for react-native-svg-transformer
+        app.json                   — usesNonExemptEncryption: false baked in
+      apps/web/
+        …                          — Next 16 ready, with proxy.ts (NOT middleware.ts)
+
+    bin/
+      setup-secrets.sh             — interactive: collects all creds, writes .env files
+      install-deps.sh              — pnpm install + expo install --fix sequence
+      process-figma-svgs.sh        — inlines var(--fill-X) references
+      kill-metros.sh               — pkill -f "expo start"
+      boot-gate.sh                 — runs convex:dev + dev:mobile + dev:web AND
                                      waits for user confirmation of device load
-    dev-mobile.sh                  — always cds to apps/mobile, supports --clear
+      dev-mobile.sh                — always cds to apps/mobile, supports --clear
 
-  legal/
-    privacy.template.md
-    terms.template.md
+    legal/
+      privacy.template.md
+      terms.template.md
 ```
+
+**Why this layout (the `kit/` folder pattern, F5 fix):** when `npx degit s-411/monorepo-kit --force` lands in a consumer's empty repo, kit material drops into a single `kit/` subfolder rather than scattering 5+ docs and 2+ folders at the repo root. The consumer's working tree stays focused on `apps/`, `packages/`, and their own files; kit reference material is one click away under `kit/`. Root configs and `packages/` MUST stay at root because pnpm-workspace.yaml looks for `packages/` there and pnpm/Turbo read the root configs from root.
 
 ---
 
@@ -295,23 +324,24 @@ monorepo-kit/
 
 | # | Issue | Fix lives in |
 |---|-------|--------------|
-| A1 | `pnpm pkg set` not real | `templates/apps/mobile/package.json` |
+| A1 | `pnpm pkg set` not real | `kit/templates/apps/mobile/package.json` |
 | A2 | zsh glob `workspace:*` | All docs use `workspace:^` |
-| A3 | `packageManager` pin | `templates/package.json` (omitted) |
-| B1 | `pnpm add` for expo pkgs | `START_NEW.md` rule, `bin/install-deps.sh` |
-| B2 | `expo install --fix` ritual | `bin/install-deps.sh` |
-| B3 | wrong-cwd `expo start` trap | `bin/dev-mobile.sh`, `.npmrc`, `START_NEW.md` |
-| B4 | missing `dev` script | `templates/apps/mobile/package.json` |
-| B5 | metro `--clear` | `bin/dev-mobile.sh --clear` flag |
-| B6 | port collision interactive | `bin/dev-mobile.sh --port` flag |
-| B7 | stale Metros / Go cache | `bin/kill-metros.sh` |
-| C1 | Convex non-interactive | `bin/setup-secrets.sh`, `START_NEW.md` |
+| A3 | `packageManager` pin | `kit/templates/package.json` (omitted) |
+| B1 | `pnpm add` for expo pkgs | `START_NEW.md` rule, `kit/bin/install-deps.sh` |
+| B2 | `expo install --fix` ritual | `kit/bin/install-deps.sh` |
+| B3 | wrong-cwd `expo start` trap | `kit/bin/dev-mobile.sh`, `.npmrc`, `START_NEW.md` |
+| B4 | missing `dev` script | `kit/templates/apps/mobile/package.json` |
+| B5 | metro `--clear` | `kit/bin/dev-mobile.sh --clear` flag |
+| B6 | port collision interactive | `kit/bin/dev-mobile.sh --port` flag |
+| B7 | stale Metros / Go cache | `kit/bin/kill-metros.sh` |
+| C1 | Convex non-interactive | `kit/bin/setup-secrets.sh`, `START_NEW.md` |
 | C2 | configure new vs existing | `START_NEW.md` defaults to `existing` |
 | C3 | JWT issuer manual | `auth.config.ts.template` + `START_NEW.md` checklist |
 | D1 | expo-crypto runtime crash | `START_NEW.md` Clerk install step (full peer set) |
 | D2 | React peer warnings | `CHEATSHEET.md` "expected" entry |
-| E1 | boot gate too lax | `bin/boot-gate.sh` waits for device confirm |
+| E1 | boot gate too lax | `kit/bin/boot-gate.sh` waits for device confirm |
 | F1 | single-app assumptions | new kit, `MONOREPO_OVERLAY.md` |
-| F2 | creds ad-hoc | `bin/setup-secrets.sh` |
-| F3 | narrow `.gitignore` | `templates/.gitignore` |
-| F4 | SVG var fills | `bin/process-figma-svgs.sh` |
+| F2 | creds ad-hoc | `kit/bin/setup-secrets.sh` |
+| F3 | narrow `.gitignore` | `kit/templates/.gitignore` |
+| F4 | SVG var fills | `kit/bin/process-figma-svgs.sh` |
+| F5 | kit clutters repo root + scripts hardcode `SCRIPT_DIR/..` | move all kit material under `kit/`, scripts use `SCRIPT_DIR/../..`, ship project-placeholder root README |

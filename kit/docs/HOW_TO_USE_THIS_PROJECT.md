@@ -27,7 +27,7 @@ For each new monorepo app, the flow is:
 # Empty GitHub repo, Initialize OFF, cloned locally
 cd your-empty-repo
 npx degit s-411/monorepo-kit --force
-./bin/setup-secrets.sh   # collects all creds → .env.kit
+./kit/bin/setup-secrets.sh   # collects all creds → .env.kit
 ```
 
 Plus: confirm Convex project + Clerk app exist, JWT template named `convex` is set up, Nanobanana MCP is connected. Full pre-flight checklist is in `KING_PROMPTS.md` Scenario A.
@@ -63,9 +63,9 @@ Plus: confirm Convex project + Clerk app exist, JWT template named `convex` is s
 | `START_NEW.md` | The king prompt for **Claude Code**. Used in Stage 1 only |
 | `KING_PROMPTS.md` | Paste-ready Claude.ai kickoff prompts. **This is the doc you reach for at the start of every new sub-chat** |
 | `HOW_TO_USE_THIS_PROJECT.md` | This file |
-| `bin/setup-secrets.sh` | Reference — Claude can answer "what does setup-secrets collect?" |
-| `bin/boot-gate.sh` | Reference — Claude can answer "what does boot-gate verify?" |
-| `templates/apps/mobile/metro.config.js` | Reference — Claude can debug Metro issues |
+| `bin/setup-secrets.sh` | Reference — Claude can answer "what does setup-secrets collect?" (lives at `kit/bin/setup-secrets.sh` in the consumer's repo) |
+| `bin/boot-gate.sh` | Reference — Claude can answer "what does boot-gate verify?" (lives at `kit/bin/boot-gate.sh` in the consumer's repo) |
+| `templates/apps/mobile/metro.config.js` | Reference — Claude can debug Metro issues (lives at `kit/templates/apps/mobile/metro.config.js` in the consumer's repo) |
 | `packages/backend/convex/auth.config.ts.template` | Reference — Claude understands the Clerk JWT issuer pattern |
 
 The actual filesystem files (configs, scripts, templates) are referenced here so Claude.ai can answer questions without needing to inspect your repo. Real content lives in your app's repo after `degit` pulls it.
@@ -101,10 +101,10 @@ Every real-world failure that wasn't caught by the kit gets logged to `KIT_RETRO
 
 | Phase | Status | What's in it |
 |---|---|---|
-| **Phase 1 — Bootstrap** | ✅ Shipped | README, START_NEW, KIT_RETROSPECTIVE, KING_PROMPTS, this file, root configs (`package.json`, `pnpm-workspace.yaml`, `turbo.json`, `.gitignore`, `.npmrc`), `bin/setup-secrets.sh`, `bin/boot-gate.sh`, monorepo-aware `metro.config.js`, package skeletons for `theme`, `shared`, `backend` |
-| **Phase 2 — Hardening** | 🔄 Pending first-run feedback | `bin/install-deps.sh`, `bin/kill-metros.sh`, `bin/dev-mobile.sh`, `bin/process-figma-svgs.sh`, `BOOTSTRAP.md`, `AGENTS.md` template |
-| **Phase 3 — Process docs** | 🔄 Pending | `STACK_PROFILES.md`, `PROCESS_GUIDE.md` (16-stage pipeline), `PROMPTS.md` (per-stage prompts), `CHEATSHEET.md` (the 20 gotchas distilled) |
-| **Phase 4 — Reference** | 🔄 Pending | `CREDENTIALS.md`, `REF_DOCS_INDEX.md`, `TESTFLIGHT.md`, `legal/privacy.template.md`, `legal/terms.template.md` |
+| **Phase 1 — Bootstrap** | ✅ Shipped | README, START_NEW, KIT_RETROSPECTIVE, KING_PROMPTS, this file (all under `kit/docs/`), root configs (`package.json`, `pnpm-workspace.yaml`, `turbo.json`, `.gitignore`, `.npmrc`), `kit/bin/setup-secrets.sh`, `kit/bin/boot-gate.sh`, monorepo-aware `kit/templates/apps/mobile/metro.config.js`, package skeletons for `theme`, `shared`, `backend` |
+| **Phase 2 — Hardening** | 🔄 Pending first-run feedback | `kit/bin/install-deps.sh`, `kit/bin/kill-metros.sh`, `kit/bin/dev-mobile.sh`, `kit/bin/process-figma-svgs.sh`, `kit/docs/BOOTSTRAP.md`, `AGENTS.md` template |
+| **Phase 3 — Process docs** | 🔄 Pending | `kit/docs/STACK_PROFILES.md`, `kit/docs/PROCESS_GUIDE.md` (16-stage pipeline), `kit/docs/PROMPTS.md` (per-stage prompts), `kit/docs/CHEATSHEET.md` (the 20 gotchas distilled) |
+| **Phase 4 — Reference** | 🔄 Pending | `kit/docs/CREDENTIALS.md`, `kit/docs/REF_DOCS_INDEX.md`, `kit/docs/TESTFLIGHT.md`, `kit/legal/privacy.template.md`, `kit/legal/terms.template.md` |
 
 Phase 2 trigger is real-world feedback from running Phase 1 against a fresh repo. New retrospective items inform Phase 2 hardening priorities.
 
@@ -126,12 +126,12 @@ pkill -f "expo start"
 
 ```bash
 # Re-run setup-secrets to update .env.kit (e.g. rotated Clerk keys)
-./bin/setup-secrets.sh
+./kit/bin/setup-secrets.sh
 ```
 
 ```bash
 # Real boot gate — never trust bundle compile alone (KIT_RETROSPECTIVE E1)
-./bin/boot-gate.sh
+./kit/bin/boot-gate.sh
 ```
 
 ---
@@ -144,7 +144,7 @@ pkill -f "expo start"
    gh repo clone s-411/movie-club
    cd movie-club
    npx degit s-411/monorepo-kit --force
-   ./bin/setup-secrets.sh
+   ./kit/bin/setup-secrets.sh
    # (interactive — provide slug, Convex team/project, Clerk keys, JWT issuer)
    ```
 

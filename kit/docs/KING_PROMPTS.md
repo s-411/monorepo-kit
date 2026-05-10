@@ -15,7 +15,7 @@ If every field is filled, the kickoff is satisfied and Claude proceeds straight 
 3. `npx degit s-411/monorepo-kit --force` — pulls the kit
 4. Convex project exists in dashboard ([dashboard.convex.dev](https://dashboard.convex.dev))
 5. Clerk app exists with the auth providers you want enabled, AND a JWT template named `convex` configured ([dashboard.clerk.com](https://dashboard.clerk.com))
-6. `./bin/setup-secrets.sh` — interactive, ~3 min, writes `.env.kit` at repo root
+6. `./kit/bin/setup-secrets.sh` — interactive, ~3 min, writes `.env.kit` at repo root
 7. Nanobanana MCP verified connected in Claude Code (`claude mcp list | grep nanobanana`)
 
 **Then paste this in a fresh Claude.ai sub-chat:**
@@ -61,7 +61,7 @@ Monorepo app sub-chat — resuming. Run kickoff against the repo state.
 If `BOOTSTRAP.md` doesn't exist yet (Phase 2 not shipped), run a manual audit:
 - `cat .env.kit` (does it still have all required vars?)
 - `pnpm install` (does the workspace still resolve?)
-- `./bin/boot-gate.sh` (do all three services still boot?)
+- `./kit/bin/boot-gate.sh` (do all three services still boot?)
 
 ---
 
