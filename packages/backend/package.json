@@ -1,0 +1,15 @@
+{
+  "name": "@kit/backend",
+  "version": "0.0.1",
+  "private": true,
+  "main": "convex/_generated/api.js",
+  "types": "convex/_generated/api.d.ts",
+  "scripts": {
+    "dev": "convex dev",
+    "deploy": "convex deploy",
+    "info": "convex info"
+  },
+  "dependencies": {
+    "convex": "^1.17.0"
+  }
+}

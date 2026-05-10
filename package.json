@@ -1,0 +1,22 @@
+{
+  "name": "monorepo-kit-app",
+  "private": true,
+  "version": "0.0.1",
+  "scripts": {
+    "dev": "turbo run dev",
+    "dev:web": "turbo run dev --filter=web",
+    "dev:mobile": "pnpm --filter mobile exec expo start",
+    "dev:mobile:port": "pnpm --filter mobile exec expo start --port",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "type-check": "turbo run type-check",
+    "convex:dev": "pnpm --filter @kit/backend dev",
+    "convex:deploy": "pnpm --filter @kit/backend deploy",
+    "kill:metros": "./bin/kill-metros.sh",
+    "boot-gate": "./bin/boot-gate.sh"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0",
+    "typescript": "^5"
+  }
+}
