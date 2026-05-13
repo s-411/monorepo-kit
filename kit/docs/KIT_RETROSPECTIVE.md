@@ -313,7 +313,72 @@ is the new default for ~95% of bootstraps.
 
 ---
 
-## Proposed kit structure (expanded from this retrospective)
+## G. Scaffolder + ai-files issues (post-move-club, May 2026)
+
+### G1. Root `pnpm-workspace.yaml` shipped without populated `allowBuilds`
+
+`pnpm create next-app` aborted with `[ERR_PNPM_IGNORED_BUILDS]` for
+`sharp@0.34.5` and `unrs-resolver@1.11.1`. Next's scaffolder treats pnpm 11's
+IGNORED_BUILDS non-zero exit as fatal and rolls back the scaffold.
+
+Root cause: the kit shipped either without an `allowBuilds:` section at
+all, or with placeholder strings (`esbuild: set this to true or false`)
+that pnpm 11 treats as not-allowed. Either way, the defence didn't function.
+
+**Kit fix:** root `pnpm-workspace.yaml` now ships with a populated
+`allowBuilds:` block listing the full set of build-requiring packages
+encountered during real kit usage: `esbuild`, `sharp`, `unrs-resolver`,
+`@swc/core`, `core-js`, `core-js-pure`, `@parcel/watcher`, `@clerk/shared`,
+`browser-tabs-lock`, `bufferutil`, `utf-8-validate` — all `true`.
+
+### G1b. `pnpm create *` "Aborting installation" log is misleading
+
+When G1 fired, the scaffolder printed `Aborting installation` but
+`apps/web/` was largely intact — `package.json`, `src/`, `node_modules/next`
+all present. Re-running Phase 3 from the top was the wrong instinct;
+correct move was fix pnpm-workspace.yaml then `pnpm install`.
+
+**Kit fix:** `START_NEW.md` Phase 3 includes a one-liner — if "Aborting
+installation" appears, `ls apps/web/` before re-running. Secondary to G1:
+won't fire if G1 is in place, but worth documenting.
+
+### G1c. pnpm 11 auto-appends `allowBuilds` stubs on subsequent `pnpm add`
+
+Every `pnpm add` after the initial install introduced 1–3 new build-requiring
+packages; pnpm 11 auto-appended new stub entries
+(`<pkg>: set this to true or false`) to `pnpm-workspace.yaml`. Each needed
+flipping to `true` before subsequent installs proceeded cleanly.
+
+**Kit fix:** ship `kit/bin/fix-allowbuilds.sh` — scans for the placeholder
+pattern and flips to `true` after operator confirmation. `START_NEW.md`
+Phase 5 documents the check.
+
+### G2. `pnpm create-*` scaffolders produce stray workspace-incorrect files
+
+`pnpm create next-app` independently created `apps/web/pnpm-workspace.yaml`
+(only root should have one — a child copy can shadow root settings).
+`pnpm create expo-app` independently created `apps/mobile/pnpm-lock.yaml`
+(only root should have one — nested lockfiles drift from root over time).
+
+**Kit fix:** `START_NEW.md` Phases 3 and 4 each end with explicit `rm -f`
+of the stray files.
+
+### G3. KIT_RETROSPECTIVE.md listed aspirational scripts that didn't ship
+
+The "Proposed kit structure" section listed six scripts in `kit/bin/`. Only
+`setup-secrets.sh` and `boot-gate.sh` actually shipped. The other four were
+referenced as if extant, leading downstream prompts to call commands that
+failed with "No such file."
+
+**Kit fix:** all four previously-aspirational scripts now ship —
+`install-deps.sh` (B2), `kill-metros.sh` (B7), `dev-mobile.sh` (B3),
+`process-figma-svgs.sh` (F4). Plus the new `fix-allowbuilds.sh` (G1c).
+The "Proposed kit structure" section below has been renamed and re-scoped
+to reflect actual shipped state.
+
+---
+
+## Kit structure (shipped)
 
 ```
 monorepo-kit/
@@ -357,13 +422,19 @@ monorepo-kit/
         …                          — Next 16 ready, with proxy.ts (NOT middleware.ts)
 
     bin/
-      setup-secrets.sh             — interactive: collects all creds, writes .env files
-      install-deps.sh              — pnpm install + expo install --fix sequence
-      process-figma-svgs.sh        — inlines var(--fill-X) references
-      kill-metros.sh               — pkill -f "expo start"
-      boot-gate.sh                 — runs convex:dev + dev:mobile + dev:web AND
-                                     waits for user confirmation of device load
-      dev-mobile.sh                — always cds to apps/mobile, supports --clear
+      setup-secrets.sh             — interactive: collects all creds, writes
+                                     .env files
+      install-deps.sh              — pnpm install + expo install --fix
+                                     ritual (B2)
+      process-figma-svgs.sh        — inlines var(--fill-X) references (F4)
+      kill-metros.sh               — pkill -f "expo start" (B7)
+      boot-gate.sh                 — runs convex:dev + dev:mobile + dev:web
+                                     AND waits for user confirmation of
+                                     device load (E1, P6)
+      dev-mobile.sh                — always cds to apps/mobile, supports
+                                     --clear (B3, B5)
+      fix-allowbuilds.sh           — flips pnpm 11's auto-appended
+                                     allowBuilds stubs to true (G1c)
 
     legal/
       privacy.template.md
@@ -400,3 +471,8 @@ monorepo-kit/
 | F4 | SVG var fills | `kit/bin/process-figma-svgs.sh` |
 | F5 | kit clutters repo root + scripts hardcode `SCRIPT_DIR/..` | move all kit material under `kit/`, scripts use `SCRIPT_DIR/../..`, ship project-placeholder root README |
 | F6 | human-driven pre-flight is fragile (cd cascades, interactive bash accepts garbage, # comments break, dashboard breaks momentum) | `kit/docs/BOOTSTRAP_PROMPT.md` for agent-driven bootstrap; Convex CLI handles project creation; Claude Code collects creds in chat with format-aware validation; `START_NEW.md` becomes manual-mode fallback |
+| G1 | allowBuilds shipped unpopulated | `templates/pnpm-workspace.yaml` (now ships populated) |
+| G1b | Misleading "Aborting installation" | `kit/docs/START_NEW.md` Phase 3 caveat |
+| G1c | pnpm 11 auto-appends stubs | `kit/bin/fix-allowbuilds.sh` + Phase 5 doc |
+| G2 | Stray child workspace/lock files | `kit/docs/START_NEW.md` Phase 3 + 4 cleanup |
+| G3 | Aspirational scripts referenced | All four scripts + fix-allowbuilds.sh now ship |
