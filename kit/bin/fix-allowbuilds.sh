@@ -10,13 +10,15 @@ if [ ! -f "$WORKSPACE_YAML" ]; then
   echo "Error: $WORKSPACE_YAML not found. Run from repo root."
   exit 1
 fi
-PLACEHOLDERS=$(grep -c 'set this to true or false' "$WORKSPACE_YAML" || true)
+PLACEHOLDERS=$(grep -v '^[[:space:]]*#' "$WORKSPACE_YAML" \
+  | grep -c 'set this to true or false' || true)
 if [ "${PLACEHOLDERS:-0}" -eq 0 ]; then
   echo "No placeholder entries found — nothing to fix."
   exit 0
 fi
 echo "Found $PLACEHOLDERS placeholder entries:"
-grep 'set this to true or false' "$WORKSPACE_YAML" | sed 's/^/  /'
+grep -v '^[[:space:]]*#' "$WORKSPACE_YAML" \
+  | grep 'set this to true or false' | sed 's/^/  /'
 echo ""
 read -p "Flip all to 'true'? [y/N] " -n 1 -r
 echo ""
