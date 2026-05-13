@@ -3,11 +3,15 @@ packages:
   - 'packages/*'
 
 # pnpm 11+ requires explicit allow-listing of packages with build scripts.
-# All entries are intentionally `true` — these are well-known build-time deps
-# safe to allow in any kit-bootstrapped app. If a NEW package surfaces during
-# `pnpm add`, pnpm 11 will auto-append a `set this to true or false` placeholder
-# here; run `kit/bin/fix-allowbuilds.sh` to flip placeholders to `true`, or
-# edit manually. See kit/docs/KIT_RETROSPECTIVE.md G1, G1c.
+# All entries below are intentionally `true` — these are well-known
+# build-time deps safe to allow in any kit-bootstrapped app.
+#
+# If a new build-requiring package surfaces during `pnpm add`, pnpm 11
+# may auto-append an unresolved stub entry here. Run
+# kit/bin/fix-allowbuilds.sh to detect such stubs and flip them to
+# `true`, or edit by hand.
+#
+# See kit/docs/KIT_RETROSPECTIVE.md G1, G1c.
 allowBuilds:
   '@clerk/shared': true
   '@parcel/watcher': true

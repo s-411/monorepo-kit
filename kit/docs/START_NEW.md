@@ -187,8 +187,8 @@ After both apps are done, run the install ritual (R4):
   pnpm-workspace.yaml's `allowBuilds:` section as
   `<pkg>: set this to true or false` placeholders during the installs
   above. Check and fix:
-    grep 'set this to true or false' pnpm-workspace.yaml && \
-      ./kit/bin/fix-allowbuilds.sh
+    grep -v '^[[:space:]]*#' pnpm-workspace.yaml \
+      | grep -q 'set this to true or false' && ./kit/bin/fix-allowbuilds.sh
   See KIT_RETROSPECTIVE.md G1c.
 
 ────────────────────────────────────────────────────────────────────────
