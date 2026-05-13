@@ -2,13 +2,17 @@
  * Convex auth configuration — wires Convex to validate JWTs minted by Clerk.
  *
  * This file is generated from auth.config.ts.template by START_NEW.md Phase 6,
- * which substitutes <CLERK_JWT_ISSUER_URL> with the value from .env.kit.
+ * which substitutes the placeholder in the `domain` field below with the
+ * Clerk JWT Issuer URL from .env.kit.
  *
- * The issuer URL comes from Clerk Dashboard → JWT Templates → "convex" template.
- * Looks like: https://your-name.clerk.accounts.dev
+ * The issuer URL comes from Clerk Dashboard → JWT Templates → "convex" template
+ * → Issuer URL field. Looks like: https://your-name.clerk.accounts.dev
  *
- * If you ever rotate the Clerk app, re-run the substitution or edit this file
- * directly with the new issuer URL.
+ * `applicationID` must be "convex" — it has to match the name of the Clerk JWT
+ * template that mints the tokens.
+ *
+ * If you ever rotate the Clerk app, re-run the substitution or edit the
+ * `domain` value directly with the new issuer URL.
  *
  * Reference: https://docs.convex.dev/auth/clerk
  */

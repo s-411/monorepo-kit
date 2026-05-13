@@ -42,3 +42,10 @@ pnpm-debug.log*
 
 # Local user scratch (caught .env.steve etc that bit us)
 *.local
+
+# Convex AI files install side effects (KIT_RETROSPECTIVE P7).
+# `npx convex ai-files install` run from repo root in a monorepo creates
+# .agents/ and .claude/skills/ with broken pointers. Skills belong at
+# user-global ~/.claude/skills/, not in-repo.
+.agents/
+.claude/skills/

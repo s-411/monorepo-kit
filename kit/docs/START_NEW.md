@@ -99,6 +99,11 @@ PHASE 1 — Verify state, source creds
   EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY, CLERK_JWT_ISSUER_URL are all set
   (echo names + first 8 chars of each value, never log the secret in full).
 - Run `pnpm --version`. If pnpm is missing, STOP.
+- Verify root pnpm-workspace.yaml has a populated `allowBuilds:` section
+  with real `true` booleans (not `set this to true or false` placeholder
+  strings). If the section is missing entirely OR contains placeholders,
+  STOP — the kit's defence against pnpm 11 ERR_PNPM_IGNORED_BUILDS has
+  regressed. Re-pull the kit: `npx degit s-411/monorepo-kit --force`.
 
 ────────────────────────────────────────────────────────────────────────
 PHASE 2 — Set workspace name + install root deps
@@ -115,11 +120,25 @@ PHASE 3 — Scaffold apps/web (Next.js 16)
 - pnpm create next-app@latest web \
     --ts --tailwind --eslint --app --src-dir \
     --import-alias "@/*" --use-pnpm --no-turbopack
+- If the scaffolder logs "Aborting installation" after an
+  ERR_PNPM_IGNORED_BUILDS error: DO NOT re-run from the top. Check
+  `ls apps/web/` first — the scaffold may have largely succeeded despite
+  the misleading log. Fix root pnpm-workspace.yaml's allowBuilds (Phase 1
+  should have caught this), then `pnpm install` from root to complete.
+  See KIT_RETROSPECTIVE.md G1, G1b.
 - cd ..
+- Cleanup: pnpm create-next-app may drop stray workspace-incorrect files.
+  Remove them — only the repo root should have these:
+    rm -f apps/web/pnpm-workspace.yaml apps/web/pnpm-lock.yaml
 - Verify: apps/web/package.json, apps/web/src/app/page.tsx exist.
 - IMPORTANT: Next 16 renamed middleware.ts → proxy.ts. Anywhere that says
   "middleware" in this prompt or kit docs, the actual file is proxy.ts in
   apps/web/src/. Note this in apps/web/AGENTS.md (create if absent).
+- Pin the web dev port (prevents collision with other Next.js dev servers
+  on the default 3000; mirrors the mobile port pin in Phase 4):
+    cd apps/web && npm pkg set scripts.dev="next dev -p 3055" && cd ..
+  (Use whatever port is free for this user. kit/bin/boot-gate.sh respects
+  WEB_PORT env var for symmetry.)
 
 ────────────────────────────────────────────────────────────────────────
 PHASE 4 — Scaffold apps/mobile (Expo + expo-router)
@@ -127,6 +146,9 @@ PHASE 4 — Scaffold apps/mobile (Expo + expo-router)
 - cd apps
 - pnpm create expo-app mobile --template tabs --yes
 - cd ..
+- Cleanup: pnpm create-expo-app may drop stray workspace-incorrect files.
+  Remove them — only the repo root should have these:
+    rm -f apps/mobile/pnpm-workspace.yaml apps/mobile/pnpm-lock.yaml
 - Verify: apps/mobile/app.json, apps/mobile/app/_layout.tsx,
   apps/mobile/package.json exist.
 - Apply the kit's monorepo-aware Metro config:
@@ -161,9 +183,24 @@ After both apps are done, run the install ritual (R4):
     pnpm --filter mobile exec expo install --fix
     pnpm install
 
+- IMPORTANT: pnpm 11 may have auto-appended new entries to
+  pnpm-workspace.yaml's `allowBuilds:` section as
+  `<pkg>: set this to true or false` placeholders during the installs
+  above. Check and fix:
+    grep 'set this to true or false' pnpm-workspace.yaml && \
+      ./kit/bin/fix-allowbuilds.sh
+  See KIT_RETROSPECTIVE.md G1c.
+
 ────────────────────────────────────────────────────────────────────────
 PHASE 6 — Initialise Convex (R6) and wire auth.config.ts (C3)
 ────────────────────────────────────────────────────────────────────────
+- WARNING: do NOT run `npx convex ai-files install` from repo root during
+  setup, even if the Convex dev log suggests it. In a monorepo (Convex at
+  packages/backend/), the install creates stray files at repo root
+  (convex/_generated/ai/, AGENTS.md, CLAUDE.md, .agents/, .claude/skills/)
+  that shadow or conflict with the real install location. If ai-files are
+  wanted, run the install from packages/backend/. See
+  KIT_RETROSPECTIVE.md P7.
 - cd packages/backend
 - Source .env.kit values and run NON-INTERACTIVELY:
     npx convex dev --once \
