@@ -167,6 +167,12 @@ pkill -f "expo start"
    ```
    (No GitHub repo yet — the agent can create it via `gh` in Phase 14, or you can do it manually later.)
 
+   Or via GitHub Desktop:
+   File → New Repository → name: movie-club, uncheck "Initialize this
+   repository with a README" → Create Repository → Publish to GitHub.
+   Then File → Show in Finder → open in Cursor/VS Code.
+   Note: Desktop may pre-create .gitattributes — that's fine.
+
 2. **Open Claude Code in that folder.** Paste the body of `kit/docs/BOOTSTRAP_PROMPT.md` (you'd have a copy locally from a previous app, or download from `s-411/monorepo-kit` GitHub) with the REQUIRED fields filled in:
 
    ```
