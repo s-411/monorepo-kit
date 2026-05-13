@@ -52,9 +52,9 @@ start_service() {
 
 confirm_running() {
   local name="$1"
-  local hint="$2"
+  local prompt="$2"
   echo
-  printf "  ❓ Is $name actually rendering on its target?\n     ($hint)\n     [y/N] "
+  printf "  ❓ %s\n     [y/N] " "$prompt"
   read -r ok
   if [[ "$ok" != "y" && "$ok" != "Y" ]]; then
     echo
@@ -104,13 +104,21 @@ sleep 20
 
 # ---------- confirm one by one ----------
 confirm_running "Convex" \
-  "tail $LOG_DIR/Convex.log — schema sync complete, no auth errors"
+  "Is Convex healthy? Check the Convex log (or tail $LOG_DIR/Convex.log):
+       - 'functions ready' should appear
+       - no schema sync errors
+       - no auth.config.ts validation errors"
 
 confirm_running "Web" \
-  "open http://localhost:$WEB_PORT in browser — page renders, no Clerk/Convex errors in console"
+  "Is the web app rendering at http://localhost:$WEB_PORT?
+       - page loads in browser
+       - no red errors in browser console"
 
 confirm_running "Mobile" \
-  "scan QR with Expo Go on a REAL device — app renders default tabs template"
+  "Is the mobile app rendering on device via Expo Go?
+       - QR scanned, app loaded on real device or simulator
+       - default tabs template (or current app screen) visible
+       - no native module errors (e.g. ExpoCryptoAES — see KIT_RETROSPECTIVE D1)"
 
 # ---------- success ----------
 echo
